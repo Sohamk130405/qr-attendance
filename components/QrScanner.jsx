@@ -40,12 +40,21 @@ const QrCodeScanner = ({ onScan }) => {
           }
         }, 300);
 
-        // Use facingMode to specify the rear camera
-        await scannerRef.current.start(
-          { facingMode: "environment" },
-          config,
-          debouncedScan
-        );
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          const videoDevices = devices.filter(
+            (device) => device.kind === "videoinput"
+          );
+          if (videoDevices.length > 0) {
+            const selectedDeviceId = videoDevices[0].deviceId; // Choose the first camera
+            scannerRef.current.start(
+              { deviceId: selectedDeviceId },
+              config,
+              debouncedScan
+            );
+          } else {
+            console.error("No video devices found");
+          }
+        });
 
         console.log("QR scanner started successfully");
       } catch (err) {
