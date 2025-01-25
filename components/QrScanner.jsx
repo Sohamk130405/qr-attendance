@@ -44,10 +44,19 @@ const QrCodeScanner = ({ onScan }) => {
           const videoDevices = devices.filter(
             (device) => device.kind === "videoinput"
           );
+          if (videoDevices.length === 0) {
+            console.error("No video devices found");
+            return;
+          }
 
+          for (const device of videoDevices) {
+            alert(
+              `Found video device: ${device.label} (id: ${device.deviceId})`
+            );
+          }
           // Try to find the rear camera based on its label
           const rearCamera = videoDevices.find((device) =>
-            device.label.toLowerCase().includes("rear")
+            device.label.toLowerCase().includes("back")
           );
 
           // If a rear camera is found, use it; otherwise, use the first camera
@@ -63,6 +72,7 @@ const QrCodeScanner = ({ onScan }) => {
             );
           } else {
             console.error("No video devices found");
+            setCameraError("No video devices found");
           }
         });
 
