@@ -22,7 +22,10 @@ const QrCodeScanner = ({ onScan }) => {
           setCameraError("Your browser does not support camera access.");
           return;
         }
+
+        // Request camera permissions
         await navigator.mediaDevices.getUserMedia({ video: true });
+
         scannerRef.current = new Html5Qrcode("reader");
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -40,41 +43,44 @@ const QrCodeScanner = ({ onScan }) => {
           }
         }, 300);
 
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          const videoDevices = devices.filter(
-            (device) => device.kind === "videoinput"
-          );
-          if (videoDevices.length === 0) {
-            console.error("No video devices found");
-            return;
-          }
+        // Enumerate video devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
 
-          for (const device of videoDevices) {
-            alert(
-              `Found video device: ${device.label} (id: ${device.deviceId})`
-            );
-          }
-          // Try to find the rear camera based on its label
-          const rearCamera = videoDevices.find((device) =>
-            device.label.toLowerCase().includes("back")
-          );
+        if (videoDevices.length === 0) {
+          console.error("No video devices found");
+          setCameraError("No video devices found");
+          return;
+        }
 
-          // If a rear camera is found, use it; otherwise, use the first camera
-          const selectedDeviceId = rearCamera
-            ? rearCamera.deviceId
-            : videoDevices[0]?.deviceId;
+        // Log available devices for debugging
+        videoDevices.forEach((device) =>
+          console.log(`Device: ${device.label}, ID: ${device.deviceId}`)
+        );
 
-          if (selectedDeviceId) {
-            scannerRef.current.start(
-              { deviceId: selectedDeviceId },
-              config,
-              debouncedScan
-            );
-          } else {
-            console.error("No video devices found");
-            setCameraError("No video devices found");
-          }
-        });
+        // Prefer the rear camera
+        const rearCamera = videoDevices.find((device) =>
+          device.label.toLowerCase().includes("back")
+        );
+
+        const selectedDeviceId = rearCamera
+          ? rearCamera.deviceId
+          : videoDevices[0].deviceId;
+
+        console.log(
+          `Selected device: ${
+            rearCamera ? "Rear Camera" : "Default Camera"
+          }, ID: ${selectedDeviceId}`
+        );
+
+        // Start the scanner
+        await scannerRef.current.start(
+          { deviceId: selectedDeviceId },
+          config,
+          debouncedScan
+        );
 
         console.log("QR scanner started successfully");
       } catch (err) {
