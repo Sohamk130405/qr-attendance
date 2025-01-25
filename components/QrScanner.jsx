@@ -44,8 +44,18 @@ const QrCodeScanner = ({ onScan }) => {
           const videoDevices = devices.filter(
             (device) => device.kind === "videoinput"
           );
-          if (videoDevices.length > 0) {
-            const selectedDeviceId = videoDevices[0].deviceId; // Choose the first camera
+
+          // Try to find the rear camera based on its label
+          const rearCamera = videoDevices.find((device) =>
+            device.label.toLowerCase().includes("back")
+          );
+
+          // If a rear camera is found, use it; otherwise, use the first camera
+          const selectedDeviceId = rearCamera
+            ? rearCamera.deviceId
+            : videoDevices[0]?.deviceId;
+
+          if (selectedDeviceId) {
             scannerRef.current.start(
               { deviceId: selectedDeviceId },
               config,
