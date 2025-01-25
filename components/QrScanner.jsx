@@ -1,3 +1,5 @@
+"use client";
+
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 
@@ -40,23 +42,30 @@ const QrCodeScanner = ({ onScan }) => {
           }
         }, 300);
 
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          const videoDevices = devices.filter(
-            (device) => device.kind === "videoinput"
-          );
-          if (videoDevices.length > 0) {
-            const selectedDeviceId = videoDevices[0].deviceId; // Choose the first camera
-            scannerRef.current.start(
-              { deviceId: selectedDeviceId },
-              config,
-              debouncedScan
-            );
-          } else {
-            console.error("No video devices found");
-          }
-        });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
 
-        console.log("QR scanner started successfully");
+        if (videoDevices.length > 0) {
+          // Try to find the rear camera
+          const rearCamera = videoDevices.find((device) =>
+            /(back|rear)/i.test(device.label)
+          );
+          const selectedDeviceId = rearCamera
+            ? rearCamera.deviceId
+            : videoDevices[0].deviceId;
+
+          await scannerRef.current.start(
+            { deviceId: selectedDeviceId },
+            config,
+            debouncedScan
+          );
+          console.log("QR scanner started successfully");
+        } else {
+          console.error("No video devices found");
+          setCameraError("No camera found on your device.");
+        }
       } catch (err) {
         console.error("Failed to initialize scanner:", err);
         setCameraError(err.message || "Could not access the camera.");
@@ -73,12 +82,12 @@ const QrCodeScanner = ({ onScan }) => {
           .catch((err) => console.error("Failed to stop scanner", err));
       }
     };
-  }, [onScan]);
+  }, [onScan, lastScannedCode, cooldown]);
 
   return (
     <div>
-      {cameraError && <p>Error: {cameraError}</p>}
-      <div id="reader"></div>
+      {cameraError && <p className="text-red-500">Error: {cameraError}</p>}
+      <div id="reader" className="w-full"></div>
     </div>
   );
 };
