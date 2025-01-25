@@ -50,14 +50,14 @@ const QrCodeScanner = ({ onScan }) => {
         if (videoDevices.length > 0) {
           // Try to find the rear camera
           const rearCamera = videoDevices.find((device) =>
-            /(back|rear)/i.test(device.label)
+            device.label.toLowerCase().includes("back")
           );
           const selectedDeviceId = rearCamera
             ? rearCamera.deviceId
             : videoDevices[0].deviceId;
 
           await scannerRef.current.start(
-            { deviceId: selectedDeviceId },
+            { deviceId: selectedDeviceId, facingMode: "environment" },
             config,
             debouncedScan
           );
