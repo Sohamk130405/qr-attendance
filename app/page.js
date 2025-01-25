@@ -13,11 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QrScanner from "@/components/QrScanner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Cross,
-  Crosshair,
-  CrossIcon,
-  LucideCross,
-  SidebarCloseIcon,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

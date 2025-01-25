@@ -18,6 +18,10 @@ const QrCodeScanner = ({ onScan }) => {
   useEffect(() => {
     const initializeScanner = async () => {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraError("Your browser does not support camera access.");
+          return;
+        }
         await navigator.mediaDevices.getUserMedia({ video: true });
         scannerRef.current = new Html5Qrcode("reader");
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
@@ -36,11 +40,21 @@ const QrCodeScanner = ({ onScan }) => {
           }
         }, 300);
 
-        await scannerRef.current.start(
-          { facingMode: "environment" },
-          config,
-          debouncedScan
-        );
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          const videoDevices = devices.filter(
+            (device) => device.kind === "videoinput"
+          );
+          if (videoDevices.length > 0) {
+            const selectedDeviceId = videoDevices[0].deviceId; // Choose the first camera
+            scannerRef.current.start(
+              { deviceId: selectedDeviceId },
+              config,
+              debouncedScan
+            );
+          } else {
+            console.error("No video devices found");
+          }
+        });
 
         console.log("QR scanner started successfully");
       } catch (err) {
