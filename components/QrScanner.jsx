@@ -57,7 +57,7 @@ const QrCodeScanner = ({ onScan }) => {
             : videoDevices[0].deviceId;
 
           await scannerRef.current.start(
-            { deviceId: selectedDeviceId, facingMode: "environment" },
+            { deviceId: selectedDeviceId},
             config,
             debouncedScan
           );
