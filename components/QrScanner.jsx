@@ -1,5 +1,3 @@
-"use client";
-
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 
@@ -42,30 +40,14 @@ const QrCodeScanner = ({ onScan }) => {
           }
         }, 300);
 
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(
-          (device) => device.kind === "videoinput"
+        // Use facingMode to specify the rear camera
+        await scannerRef.current.start(
+          { facingMode: "environment" },
+          config,
+          debouncedScan
         );
 
-        if (videoDevices.length > 0) {
-          // Try to find the rear camera
-          const rearCamera = videoDevices.find((device) =>
-            device.label.toLowerCase().includes("back")
-          );
-          const selectedDeviceId = rearCamera
-            ? rearCamera.deviceId
-            : videoDevices[0].deviceId;
-
-          await scannerRef.current.start(
-            { deviceId: selectedDeviceId},
-            config,
-            debouncedScan
-          );
-          console.log("QR scanner started successfully");
-        } else {
-          console.error("No video devices found");
-          setCameraError("No camera found on your device.");
-        }
+        console.log("QR scanner started successfully");
       } catch (err) {
         console.error("Failed to initialize scanner:", err);
         setCameraError(err.message || "Could not access the camera.");
@@ -82,12 +64,12 @@ const QrCodeScanner = ({ onScan }) => {
           .catch((err) => console.error("Failed to stop scanner", err));
       }
     };
-  }, [onScan, lastScannedCode, cooldown]);
+  }, [onScan]);
 
   return (
     <div>
-      {cameraError && <p className="text-red-500">Error: {cameraError}</p>}
-      <div id="reader" className="w-full"></div>
+      {cameraError && <p>Error: {cameraError}</p>}
+      <div id="reader"></div>
     </div>
   );
 };
